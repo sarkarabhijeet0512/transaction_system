@@ -13,7 +13,7 @@ type Repository interface {
 	createTransaction(ctx context.Context, tx *Transaction) error
 	getTransactionByID(ctx context.Context, id int64) (*Transaction, error)
 	getTransactionsByType(ctx context.Context, txType string) ([]int64, error)
-	getSumByTransactionID(ctx context.Context, id int64) (float64, error)
+	getSumByTransactionID(ctx context.Context, id int64) (*Sum, error)
 }
 
 // NewRepositoryIn is function param struct of func `NewRepository`
@@ -53,6 +53,9 @@ func (r *dbRepo) getTransactionByID(ctx context.Context, id int64) (*Transaction
 	var tx Transaction
 	err := r.db.ModelContext(ctx, &tx).Where("transaction_id = ?", id).Select()
 	// SELECT * FROM transactions WHERE id = id
+	if err != nil && err == pg.ErrNoRows {
+		err = nil
+	}
 	return &tx, err
 }
 
@@ -60,17 +63,21 @@ func (r *dbRepo) getTransactionsByType(ctx context.Context, txType string) ([]in
 	var ids []int64
 	err := r.db.ModelContext(ctx, &Transaction{}).Column("transaction_id").Where("type = ?", txType).Select(&ids)
 	//SELECT id FROM transactions WHERE type = txtype
+
 	return ids, err
 }
 
-func (r *dbRepo) getSumByTransactionID(ctx context.Context, id int64) (float64, error) {
-	var sum float64
+func (r *dbRepo) getSumByTransactionID(ctx context.Context, id int64) (sum *Sum, err error) {
+	sum = &Sum{}
 
-	_, err := r.db.QueryContext(ctx, sum, `WITH RECURSIVE tx_tree AS (
-	                           SELECT transaction_id, amount FROM transactions WHERE transaction_id = ?
-	                           UNION ALL
-	                           SELECT t.transaction_id, t.amount FROM transactions t
-	                           JOIN tx_tree tt ON t.parent_id = tt.transaction_id
-	                       ) SELECT SUM(amount) FROM tx_tree`, id)
+	_, err = r.db.QueryContext(ctx, sum, `
+		WITH RECURSIVE tx_tree AS (
+			SELECT transaction_id, amount FROM transactions WHERE transaction_id = ?
+			UNION ALL
+			SELECT t.transaction_id, t.amount FROM transactions t
+			JOIN tx_tree tt ON t.parent_id = tt.transaction_id
+		)
+		SELECT SUM(amount) FROM tx_tree
+	`, id)
 	return sum, err
 }

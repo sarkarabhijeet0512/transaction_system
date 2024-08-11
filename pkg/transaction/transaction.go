@@ -25,4 +25,7 @@ type (
 		CreatedAt     time.Time `json:"created_at" pg:"created_at"`
 		UpdatedAt     time.Time `json:"updated_at" pg:"updated_at"`
 	}
+	Sum struct {
+		Sum float64 `json:"sum"`
+	}
 )

@@ -30,6 +30,6 @@ func (s *Service) GetTransactionsByType(ctx context.Context, txType string) ([]i
 	return s.Repo.getTransactionsByType(ctx, txType)
 }
 
-func (s *Service) GetSumByTransactionID(ctx context.Context, id int64) (float64, error) {
+func (s *Service) GetSumByTransactionID(ctx context.Context, id int64) (*Sum, error) {
 	return s.Repo.getSumByTransactionID(ctx, id)
 }

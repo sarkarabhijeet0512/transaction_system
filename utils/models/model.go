@@ -7,6 +7,7 @@ type (
 		Data    any        `json:"data,omitempty"`
 		Meta    Pagination `json:"meta,omitempty"`
 	}
+
 	Pagination struct {
 		CurrentPage    int `json:"current_page,omitempty"`
 		TotalPages     int `json:"total_pages,omitempty"`
