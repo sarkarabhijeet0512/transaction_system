@@ -46,7 +46,12 @@ func (h *TransactionHandler) CreateTransaction(c *gin.Context) {
 		err = er.New(err, er.UncaughtException).SetStatus(http.StatusBadRequest)
 		return
 	}
-	req.TransactionID, _ = strconv.ParseInt(c.Param("transaction_id"), 10, 64)
+	req.TransactionID, err = strconv.ParseInt(c.Param("transaction_id"), 10, 64)
+	if err != nil {
+		err = er.New(err, er.UncaughtException).SetStatus(http.StatusBadRequest)
+		return
+	}
+
 	if err = h.transactionService.CreateTransaction(ctx, req); err != nil {
 		err = er.New(err, er.UncaughtException).SetStatus(http.StatusUnprocessableEntity)
 		return
@@ -62,7 +67,6 @@ func (h *TransactionHandler) GetTransactionByID(c *gin.Context) {
 	var (
 		err error
 		res = model.GenericRes{}
-		req = &transaction.Transaction{}
 		ctx = context.Background()
 	)
 
@@ -73,11 +77,11 @@ func (h *TransactionHandler) GetTransactionByID(c *gin.Context) {
 		}
 	}()
 
-	if err = c.ShouldBind(&req); err != nil {
+	id, err := strconv.ParseInt(c.Param("transaction_id"), 10, 64)
+	if err != nil {
 		err = er.New(err, er.UncaughtException).SetStatus(http.StatusBadRequest)
 		return
 	}
-	id, _ := strconv.ParseInt(c.Param("transaction_id"), 10, 64)
 	tx, err := h.transactionService.GetTransactionByID(ctx, id)
 	if err != nil {
 		err = er.New(err, er.UncaughtException).SetStatus(http.StatusUnprocessableEntity)
@@ -94,7 +98,6 @@ func (h *TransactionHandler) GetTransactionsByType(c *gin.Context) {
 	var (
 		err error
 		res = model.GenericRes{}
-		req = &transaction.Transaction{}
 		ctx = context.Background()
 	)
 	defer func() {
@@ -104,10 +107,6 @@ func (h *TransactionHandler) GetTransactionsByType(c *gin.Context) {
 		}
 	}()
 
-	if err = c.ShouldBind(&req); err != nil {
-		err = er.New(err, er.UncaughtException).SetStatus(http.StatusBadRequest)
-		return
-	}
 	txType := c.Param("type")
 	ids, err := h.transactionService.GetTransactionsByType(ctx, txType)
 	if err != nil {
@@ -124,7 +123,6 @@ func (h *TransactionHandler) GetSumByTransactionID(c *gin.Context) {
 	var (
 		err error
 		res = model.GenericRes{}
-		req = &transaction.Transaction{}
 		ctx = context.Background()
 	)
 	defer func() {
@@ -134,11 +132,11 @@ func (h *TransactionHandler) GetSumByTransactionID(c *gin.Context) {
 		}
 	}()
 
-	if err = c.ShouldBind(&req); err != nil {
+	id, err := strconv.ParseInt(c.Param("transaction_id"), 10, 64)
+	if err != nil {
 		err = er.New(err, er.UncaughtException).SetStatus(http.StatusBadRequest)
 		return
 	}
-	id, _ := strconv.ParseInt(c.Param("transaction_id"), 10, 64)
 	sum, err := h.transactionService.GetSumByTransactionID(ctx, id)
 	if err != nil {
 		err = er.New(err, er.UncaughtException).SetStatus(http.StatusUnprocessableEntity)
