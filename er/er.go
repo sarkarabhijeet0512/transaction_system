@@ -45,10 +45,10 @@ type E struct {
 	Message string `json:"message"`
 
 	// Info is link/URL to the logging system(Sentry/Kibana) to get more insight and trace error
-	Info string `json:"info"`
+	Info string `json:"-"`
 
 	// ErrorMsg is actual technical error occurred
-	ErrorMsg string `json:"-"`
+	ErrorMsg string `json:"error_message"`
 
 	// NOP (no-operation) if set will not send error to sentry
 	NOP bool `json:"-"`

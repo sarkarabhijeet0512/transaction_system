@@ -16,12 +16,13 @@ var Module = fx.Options(
 
 type (
 	Transaction struct {
-		ID        int64     `json:"id" db:"id"`
-		Amount    float64   `json:"amount" db:"amount"`
-		Type      string    `json:"type" db:"type"`
-		ParentID  *int64    `json:"parent_id,omitempty" db:"parent_id"`
-		IsActive  bool      `json:"is_active" db:"is_active"`
-		CreatedAt time.Time `json:"created_at" pg:"created_at"`
-		UpdatedAt time.Time `json:"updated_at" pg:"updated_at"`
+		ID            int64     `json:"id" pg:"id"`
+		TransactionID int64     `json:"transaction_id" pg:"transaction_id,unique"`
+		Amount        float64   `json:"amount" pg:"amount"`
+		Type          string    `json:"type" pg:"type"`
+		ParentID      *int64    `json:"parent_id,omitempty" pg:"parent_id"`
+		IsActive      bool      `json:"is_active" pg:"is_active"`
+		CreatedAt     time.Time `json:"created_at" pg:"created_at"`
+		UpdatedAt     time.Time `json:"updated_at" pg:"updated_at"`
 	}
 )

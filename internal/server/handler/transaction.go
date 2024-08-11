@@ -35,14 +35,23 @@ func (h *TransactionHandler) CreateTransaction(c *gin.Context) {
 		req = &transaction.Transaction{}
 		ctx = context.Background()
 	)
+	defer func() {
+		if err != nil {
+			c.Error(err)
+			h.log.WithField("info", err).Warn(err.Error())
+		}
+	}()
+
 	if err = c.ShouldBind(&req); err != nil {
 		err = er.New(err, er.UncaughtException).SetStatus(http.StatusBadRequest)
 		return
 	}
+	req.TransactionID, _ = strconv.ParseInt(c.Param("transaction_id"), 10, 64)
 	if err = h.transactionService.CreateTransaction(ctx, req); err != nil {
 		err = er.New(err, er.UncaughtException).SetStatus(http.StatusUnprocessableEntity)
 		return
 	}
+
 	res.Message = "Success"
 	res.Success = true
 	res.Data = req
@@ -56,6 +65,14 @@ func (h *TransactionHandler) GetTransactionByID(c *gin.Context) {
 		req = &transaction.Transaction{}
 		ctx = context.Background()
 	)
+
+	defer func() {
+		if err != nil {
+			c.Error(err)
+			h.log.WithField("info", err).Warn(err.Error())
+		}
+	}()
+
 	if err = c.ShouldBind(&req); err != nil {
 		err = er.New(err, er.UncaughtException).SetStatus(http.StatusBadRequest)
 		return
@@ -80,6 +97,13 @@ func (h *TransactionHandler) GetTransactionsByType(c *gin.Context) {
 		req = &transaction.Transaction{}
 		ctx = context.Background()
 	)
+	defer func() {
+		if err != nil {
+			c.Error(err)
+			h.log.WithField("info", err).Warn(err.Error())
+		}
+	}()
+
 	if err = c.ShouldBind(&req); err != nil {
 		err = er.New(err, er.UncaughtException).SetStatus(http.StatusBadRequest)
 		return
@@ -103,6 +127,13 @@ func (h *TransactionHandler) GetSumByTransactionID(c *gin.Context) {
 		req = &transaction.Transaction{}
 		ctx = context.Background()
 	)
+	defer func() {
+		if err != nil {
+			c.Error(err)
+			h.log.WithField("info", err).Warn(err.Error())
+		}
+	}()
+
 	if err = c.ShouldBind(&req); err != nil {
 		err = er.New(err, er.UncaughtException).SetStatus(http.StatusBadRequest)
 		return

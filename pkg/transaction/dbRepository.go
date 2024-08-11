@@ -2,6 +2,7 @@ package transaction
 
 import (
 	"context"
+	"transaction_system/utils"
 
 	"github.com/go-pg/pg/v10"
 	"github.com/sirupsen/logrus"
@@ -40,21 +41,24 @@ func NewDBRepository(i NewRepositoryIn) (Repo Repository, err error) {
 	return
 }
 func (r *dbRepo) createTransaction(ctx context.Context, tx *Transaction) error {
-	_, err := r.db.ModelContext(ctx, tx).Insert()
+	utils.SetGenericFieldValue(tx)
+	_, err := r.db.ModelContext(ctx, tx).
+		Returning("*").OnConflict("(transaction_id) DO UPDATE").
+		Insert()
 	//INSERT INTO transactions (id, amount, type, parent_id) VALUES (id, amount, type, parent_id)`, &tx)
 	return err
 }
 
 func (r *dbRepo) getTransactionByID(ctx context.Context, id int64) (*Transaction, error) {
 	var tx Transaction
-	err := r.db.ModelContext(ctx, &tx).Where("id = ?", id).Select()
+	err := r.db.ModelContext(ctx, &tx).Where("transaction_id = ?", id).Select()
 	// SELECT * FROM transactions WHERE id = id
 	return &tx, err
 }
 
 func (r *dbRepo) getTransactionsByType(ctx context.Context, txType string) ([]int64, error) {
 	var ids []int64
-	err := r.db.ModelContext(ctx, &Transaction{}).Column("id").Where("type = ?", txType).Select(&ids)
+	err := r.db.ModelContext(ctx, &Transaction{}).Column("transaction_id").Where("type = ?", txType).Select(&ids)
 	//SELECT id FROM transactions WHERE type = txtype
 	return ids, err
 }
@@ -62,11 +66,11 @@ func (r *dbRepo) getTransactionsByType(ctx context.Context, txType string) ([]in
 func (r *dbRepo) getSumByTransactionID(ctx context.Context, id int64) (float64, error) {
 	var sum float64
 
-	_, err := r.db.QueryContext(ctx, &sum, `WITH RECURSIVE tx_tree AS (
-	                           SELECT id, amount FROM transactions WHERE id = $1
+	_, err := r.db.QueryContext(ctx, sum, `WITH RECURSIVE tx_tree AS (
+	                           SELECT transaction_id, amount FROM transactions WHERE transaction_id = ?
 	                           UNION ALL
-	                           SELECT t.id, t.amount FROM transactions t
-	                           JOIN tx_tree tt ON t.parent_id = tt.id
+	                           SELECT t.transaction_id, t.amount FROM transactions t
+	                           JOIN tx_tree tt ON t.parent_id = tt.transaction_id
 	                       ) SELECT SUM(amount) FROM tx_tree`, id)
 	return sum, err
 }
